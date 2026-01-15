@@ -1,0 +1,11 @@
+(defclass buffer (file-dir size)
+   (if (file-exists file-dir)
+      (withfile (file-dir) :stream-name (get-file-name file-dir)
+	   (define-pane (get-file-name file-dir)
+		(size
+		 :type editable-text
+		 :initial-contents file-dir)))
+       (with-new-file (file-dir) :stream-name (get-file-name file-dir)
+	   (define-pane (get-file-name file-dir)
+		(size
+		 :type editable-text))))

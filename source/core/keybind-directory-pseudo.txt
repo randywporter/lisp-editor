@@ -1,0 +1,16 @@
+(defstruct keybind
+	(key-combo nil :type list)
+	(command nil :type function??
+		)
+
+(defparameter *keybind-directory*
+	(list 
+		(make-keybind <keys> <command>)
+		(make-keybind (list ctrl s) #'save-file)
+		...)))
+
+(defun is-keybind? (key-combo)
+	(dolist *keybind-directory* entry
+		(if (eql (keybind-key-combo entry) key-combo)
+			(do-command (keybind-command entry) nil)
+			(do-command #'keybind-doesnt-exist (key-combo)))))
