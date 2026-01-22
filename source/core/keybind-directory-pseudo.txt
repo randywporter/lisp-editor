@@ -1,6 +1,6 @@
 (defstruct keybind
 	(key-combo nil :type list)
-	(command nil :type function??
+	(command nil :type command-entry
 		)
 
 (defparameter *keybind-directory*

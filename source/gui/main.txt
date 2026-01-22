@@ -1,0 +1,25 @@
+(in-package
+	"lisp-editor")
+
+(load 
+	lisp-editor:keybind-directory
+	lisp-editor:buffer
+	...)
+
+(define-pane floating-window
+	()
+	(initialize-window)
+	...
+	)
+
+(define-pane main-pane 
+	()
+	(initalize-gui)
+	(:size # #)
+	)
+
+
+(defun main ()
+	(create-pane main-pane)
+	(run-gui))
+;; this main function looks bad but it's simply meant to call a function of MCCLIM, and thats it
