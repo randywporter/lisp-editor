@@ -1,4 +1,4 @@
-(cl-in-package #:lisp-editor-base)
+(cl:in-package #:lisp-editor-base)
 
 
 ;; assoc list

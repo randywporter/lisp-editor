@@ -6,8 +6,8 @@
 
 ;;;;
 
-(defmacro my-make-command (name &key (com-behavior '(placeholder-do-nothing)) (args nil))
-  `(define-superapp-command (,name :name t)
+(defmacro my-make-command (n &key (com-behavior '(placeholder-do-nothing)) (args nil))
+  `(define-superapp-command (,n :name t)
        (,@args)
      ,com-behavior))
 
@@ -94,8 +94,13 @@
 (defun my-list-buffers ()
   (format t (get-all-live-buffers *buffers*)))
 
+(defun update-text-style ()
+  (setq *default-text-style* (make-text-style :serif :roman *editor-text-size*))
+  (redisplay-frame-panes *application-frame* :force-p t))
+
 (defun my-zoom (change)
-  )
+  (setq *editor-text-size* (+ change *editor-text-size*))
+  (update-text-style))
 
 (defun init-commands ()
   (my-make-command com-quit
@@ -109,13 +114,14 @@
 
   (my-make-command com-redo)
 
-  (my-make-command com-zoom-in
-                   :com-behavior (my-zoom 1))
-
-  (my-make-command com-zoom-out)
+;  (my-make-command com-zoom-in
+;                   :com-behavior (my-zoom 5))
+;
+;  (my-make-command com-zoom-out
+;                   :com-behavior (my-zoom -5)
+;                   )
 
   (my-make-command com-list-buffers
-;    buffers arent fulling implemented yet     ;          :com-behavior (my-list-buffers)
                    )
   
   (my-make-command com-close

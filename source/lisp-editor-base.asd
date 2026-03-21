@@ -12,4 +12,5 @@
    (:file "config")
    (:file "text-bufs")
    (:file "commands")
-   (:file "main")))
+   (:file "main"
+          )))

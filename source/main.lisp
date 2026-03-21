@@ -7,9 +7,8 @@
 
 (defparameter +editor-view+ (make-instance 'editor-view))
 
-(defparameter *editor-text-size* 20)
-
-(defparameter *editor-text-style* (make-text-style :serif :roman *editor-text-size*))
+(defparameter *default-text-style* (make-text-style :serif :roman 20)
+  )
 
 (define-application-frame superapp ()
   ()
@@ -19,7 +18,9 @@
    (my-text-editor :text-editor
                    :value ""
                    :nlines 10
-                   :ncolumns 40)
+                   :ncolumns 40
+                   :scroll-bars :both
+                   )
    (my-int :interactor
         :width 400
         :height 100)
@@ -46,17 +47,18 @@
                      ("Paste" :command com-paste)
                      ("Undo" :command com-undo)
                      ("Redo" :command com-redo)))
-  (my-make-com-tab 'my-view-menu nil
-                   '(("Zoom In" :command com-zoom-in)
-                     ("Zoom Out" :command com-zoom-out)))
   (my-make-com-tab 'my-buffer-menu nil
                    '(("List Buffers" :command com-list-buffers)))
     (my-make-com-tab 'my-menubar nil
      '(("File" :menu my-file-menu)
        ("Edit" :menu  my-edit-menu)
-       ("View" :menu my-view-menu)
        ("Buffers" :menu my-buffer-menu))))
 
+;;; might not implement view
+;(my-make-com-tab 'my-view-menu nil
+;      '(("Zoom in" :command com-zoom-in)
+;        ("Zoom out" :command com-zoom-out)))
+;
 (defun lisp-editor:app-main ()
   (init-commands)
   (make-menu-bar)
