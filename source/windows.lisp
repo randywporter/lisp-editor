@@ -16,4 +16,13 @@
          :initform '(10 10))))
 
 (defun draw-window (window screen)
-  (let* ((name ()))))
+  (let* ((name (get-window-filestring window))
+         (str (get-window-string window))
+         (pos (get-window-pos window))
+         (size (get-window-size window)))
+    ))
+
+(defun get-window-filestring (window)
+  (namestring (get-buffer-file (get-window-buffer window))))
+
+

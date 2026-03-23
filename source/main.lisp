@@ -15,12 +15,7 @@
   (:menu-bar my-menubar)
   (:pointer-documentation t)
   (:panes
-   (my-text-editor :text-editor
-                   :value ""
-                   :nlines 10
-                   :ncolumns 40
-                   :scroll-bars :both
-                   )
+   (screen (make-pane 'screen-pane))
    (my-int :interactor
         :width 400
         :height 100)
