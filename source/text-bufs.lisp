@@ -28,23 +28,23 @@
 (defun return-buffer-of-name (bufs &key (name "scratch"))
   (cdr (assoc name bufs)))
 
-(defun get-num-of-bufs (bufs)
+(defun num-of-bufs (bufs)
   (length bufs))
 
-(defun get-all-live-buffers (bufs)
+(defun all-live-buffers (bufs)
   (let* ((rl '())
          (res (dolist (item bufs rl)
                 (append rl `(,item)))))
     res))
 
-(defun get-buffer-lines (buffer)
+(defun buffer-lines (buffer)
   (text.editor-buffer:items buffer))
 
-(defun get-line-chars (line)
+(defun line-chars (line)
   (text.editor-buffer:items line))
 
-(defun get-buffer-conts-to-string (buffer)
+(defun buffer-conts-to-string (buffer)
   )
 
-(defun get-buffer-name (buffer)
-  (namestring (get-buffer-file buffer)))
+(defun buffer-name (buffer)
+  (namestring (buffer-file buffer)))

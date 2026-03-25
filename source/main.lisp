@@ -15,7 +15,11 @@
   (:menu-bar my-menubar)
   (:pointer-documentation t)
   (:panes
-   (screen (make-pane 'screen-pane))
+   (screen (make-pane 'screen-pane
+                      :width :compute
+                      :height :compute
+                      :display-function 'draw-screen
+                      :display-time t))
    (my-int :interactor
         :width 400
         :height 100)
