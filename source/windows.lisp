@@ -25,7 +25,6 @@
          :initform '(10 10))))
 
 (defun draw-window (frame pane)
-  (declare (ignore frame))
   (let* ((window screen-window)
          (name (window-filestring window))
          (str (window-string window))
