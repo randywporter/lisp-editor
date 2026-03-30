@@ -11,7 +11,7 @@
   )
 
 (define-application-frame superapp ()
-  ((my-var 5))
+  ()
   (:menu-bar my-menubar)
   (:pointer-documentation t)
   (:panes

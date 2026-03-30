@@ -14,8 +14,9 @@
     buf
     ))
 
-(defun create-new-buffer (glob-buffs &key (file (user-homedir-pathname)) (initial-line-conts ""))
-  (append glob-buffs `((,(namestring file) . ,(make-buffer :file file :initial-line-conts initial-line-conts)))))
+(defun create-new-buffer (&key (file (user-homedir-pathname)) (initial-line-conts "")) 
+  (let ((glob-buffs *buffers*))
+   (append glob-buffs `((,(namestring file) . ,(make-buffer :file file :initial-line-conts initial-line-conts))))))
 
 (defmacro init-buffers ()
   `(defvar *buffers*

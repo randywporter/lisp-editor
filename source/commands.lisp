@@ -38,6 +38,8 @@
 ;; and open a new window in said buffer
 ;; for now, clears my-text-editor pane
 ;; also asks the question of implementing "Did you save all files?" before exiting
+;; DEPRECATED
+;; reimplementing all the text editor functions, so all of these are useless atm
 (defun my-new-file ()
   (setf (gadget-value (find-pane-named *application-frame* 'my-text-editor))
         ""))
@@ -54,7 +56,7 @@
 
 ;; implement GET-BUFFER-NAME here for the default filename
 ;; vice versa with com-open and com-new, when making buffers
-
+;; done!
 
 ;DEPRECATED - KEEPING FOR NOW BECAUSE ITS A GOOD TEMPLATE
 (defun overwrite-or-new-ver (&key (stream *query-io*) (ow t))
@@ -90,9 +92,6 @@
 
 (defun placeholder-do-nothing ()
   (princ "I haven't been implemented!" *query-io*))
-
-(defun my-list-buffers ()
-  (format t (get-all-live-buffers *buffers*)))
 
 (defun update-text-style ()
   (setq *default-text-style* (make-text-style :serif :roman *editor-text-size*))
