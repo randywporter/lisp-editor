@@ -101,6 +101,7 @@
   (setq *editor-text-size* (+ change *editor-text-size*))
   (update-text-style))
 
+
 (defun init-commands ()
   (my-make-command com-quit
                    :com-behavior (frame-exit *application-frame*))
@@ -113,15 +114,7 @@
 
   (my-make-command com-redo)
 
-;  (my-make-command com-zoom-in
-;                   :com-behavior (my-zoom 5))
-;
-;  (my-make-command com-zoom-out
-;                   :com-behavior (my-zoom -5)
-;                   )
-
-  (my-make-command com-list-buffers
-                   )
+  (my-make-command com-list-buffers)
   
   (my-make-command com-close
                    :com-behavior (my-new-file))

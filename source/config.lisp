@@ -1,3 +1,4 @@
+
 (cl:in-package #:lisp-editor-base)
 
 (defparameter *editor-config*

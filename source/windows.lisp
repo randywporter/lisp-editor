@@ -11,10 +11,9 @@
   )
 
 (defclass screen-pane (application-pane)
-  (:default-initargs :background +gray90+
-   (windows :accessor screen-windows
-            :initarg '()))
-  )
+  ((windows :accessor screen-windows
+            :initform '()))
+  (:default-initargs :background +gray90+))
 
 ;; coming with great inspiration from clim-fig and draggable-graph
 ;; in the mcclim source
@@ -24,6 +23,10 @@
    (delta-y :initarg :delta-y :reader delta-y :initform 0))
   (:default-initargs
    :record (error "move-event needs a record")))
+
+(defun get-pointer-position (pane)
+  (multiple-value-bind (x y) (stream-pointer-position pane)
+    (make-point x y)))
 
 (defclass window ()
   ((buffer :accessor window-buffer
@@ -48,17 +51,38 @@
 ;; HARD functional abstraction here, still figuring out
 ;; low level details, but the idea here is solid
 (defun draw-window (frame pane)
-  (let* ((window screen-window)
-         (name (window-filestring window))
-         (str (window-string window))
-         (pos (window-pos window))
-         (size (window-size window)))
-    (clear-or-reset-canvas)
-    (draw-plain-window pos size)
-    (draw-window-name pos name)
-    (draw-window-close-button pos size window)
-    (draw-window-string pos size str)
-    ))
+  (dolist (window (screen-windows pane) nil)
+    (let* ((window screen-window)
+           (name (window-filestring window))
+           (str (window-string window))
+           (pos (window-pos window))
+           (size (window-size window)))
+;;; if !active, quit? or only run if active
+      (window-clear pane)
+      (draw-plain-window pos size pane)
+      (draw-window-name pos name)
+      (draw-window-close-button pos size window)
+      (draw-window-string pos size str)
+      )))
+
+(defun draw-plain-window (pos size pane))
+
+(defun draw-window-name (pos name))
+
+(defun window-close-button (pos size window))
+
+(defun close-window (pane pos-click)
+  )
+
+(defclass button-window-close ()
+  )
+
+(define-presentation-to-command-translator translator-close-window
+    ())
+
+(defmethod window-clear ((pane screen-pane))
+  (call-next-method)
+  (handle-repaint pane (sheet-region pane)))
 
 (defun window-filestring (window)
   (namestring (buffer-file (window-buffer window))))
