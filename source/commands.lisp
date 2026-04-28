@@ -6,7 +6,7 @@
 
 ;;;;
 
-(defmacro my-make-command (n &key (com-behavior '(placeholder-do-nothing)) (args nil))
+(defmacro lisp-editor-base:my-make-command (n &key (com-behavior '(placeholder-do-nothing)) (args nil))
   `(define-superapp-command (,n :name t)
        (,@args)
      ,com-behavior))

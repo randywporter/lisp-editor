@@ -7,5 +7,7 @@
 
 (defpackage #:lisp-editor-base
   (:use #:common-lisp #:clim)
-  (:export))
+  (:export
+   #:my-make-command
+   #:draw-window))
 

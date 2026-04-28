@@ -1,19 +1,31 @@
 (cl:in-package #:lisp-editor-base)
 
+;;; FIXME ;;;
+;; many of the drawing functions here
+;; were not made with the time taken
+;; to differentiate between mediums, sheets, and panes
+;; so panes are most likely used where they should'nt
+;; and coordinates assuming the unchanging coordinate system of
+;; the pane behind it all
+;;;;
+
+
+
 
 ;; these might not get used...
+;; deprecated 
 (defmacro init-screen-params ()
   `(progn
      (defparameter *width* 500)
      (defparameter *height* 700)
-     (defparameter *screen-bounds* (make-rectangle* 0 0 *width* *height*))
+     (defparameter *screen-bounds* (clim:make-rectangle* 0 0 *width* *height*))
      )
   )
 
-(defclass screen-pane (application-pane)
+(defclass screen-pane (clim:application-pane)
   ((windows :accessor screen-windows
             :initform '()))
-  (:default-initargs :background +gray90+))
+  (:default-initargs :background clim:+gray90+))
 
 ;; coming with great inspiration from clim-fig and draggable-graph
 ;; in the mcclim source
@@ -26,17 +38,17 @@
 
 (defun get-pointer-position (pane)
   (multiple-value-bind (x y) (stream-pointer-position pane)
-    (make-point x y)))
+    (clim:make-point x y)))
 
 (defclass window ()
   ((buffer :accessor window-buffer
            :initarg :buffer)
    (pos :accessor window-pos
         :initarg :pos
-        :initform '(0 0))
+        :initform (clim:make-point 0 0))
    (size :accessor window-size
          :initarg :size
-         :initform '(10 10))
+         :initform  (clim:make-point 10 10))
    (active :accessor window-active
            :initarg :active
            :initform nil)
@@ -47,42 +59,106 @@
   (setq (window-active window) t))
 
 
+;; trans is a faux point to translate the original point by
+(defun lisp-edior-base:translate-point (org trans)
+  (clim:make-point (+ (clim:point-x org) (clim:point-x trans))
+                   (+ (clim:point-y org) (clim:point-y trans))))
 
 ;; HARD functional abstraction here, still figuring out
 ;; low level details, but the idea here is solid
-(defun draw-window (frame pane)
+;; actually isnt that low level, just complicated to draw
+;;; FIXME remove the dolist, thisll get called externally on each window
+;; init-pos is a clim standard point
+(defun draw-window (frame pane &optional init-pos))
   (dolist (window (screen-windows pane) nil)
     (let* ((window screen-window)
            (name (window-filestring window))
            (str (window-string window))
-           (pos (window-pos window))
-           (size (window-size window)))
+           (pos (if init-pos
+                    init-pos
+                    (window-pos window)))
+           (size (if init-pos
+                     (lisp-editor-base:translate-point size init-pos))))
 ;;; if !active, quit? or only run if active
       (window-clear pane)
       (draw-plain-window pos size pane)
       (draw-window-name pos name)
       (draw-window-close-button pos size window)
-      (draw-window-string pos size str)
-      )))
+      (draw-window-string pos size str window)
+      ))
 
-(defun draw-plain-window (pos size pane))
+(defun draw-plain-window (pos size pane)
+  (clim:draw-rectangle pane pos size :filled t :line-thickness 3))
 
-(defun draw-window-name (pos name))
+(defun draw-window-name (pos name)
+  )
 
-(defun window-close-button (pos size window))
+
+;; text will be 25x40 pixel?
+;; sounds too big, we try 15x24, no spacing
+
+;; PRAISE BE THERE'S A BUILT IN FUNCTION
+
+(defun draw-window-string (pos size sequence window)
+  "pos is top left xy, size is bottom right xy, sequence is a sequence of char types, window is window to be drawn in"
+  (let ((new-pos (clim:make-point
+                  (clim:point-x pos)
+                  (+ (clim:point-y 20)))))
+    (clim:draw-text window sequence new-pos :toward-point size)))
+
+(defun window-close-button (pos size window)
+  )
 
 (defun close-window (pane pos-click)
   )
 
-(defclass button-window-close ()
+(defclass lisp-editor-base:topbar-draggable-window (clim:standard-bounding-rectangle)
+  ()
+  :documentation "class for the top bar of a window to drag"
   )
 
-(define-presentation-to-command-translator translator-close-window
+(defclass lisp-editor-base:button-close-window (clim:standard-bounding-rectangle)
+  ()
+  :documentation "class for the button that closes windows"
+  )
+
+;;; updates window pos and size values by translation of new-x and
+;;; new-y when dragged
+;;; FIXME tester is shamelessly copied and might not work in this very case
+(clim:define-presentation-to-command-translator translator-drag-window
+    (lisp-editor-base:topbar-draggable-window
+     com-drag-window superapp
+     :documentation "drag a window"
+     :tester
+     ((object)
+      (let ((frame *application-frame*))
+        (eq (clim:pointer-sheet (clim:port-pointer (clim:port frame)))
+            (clim:get-frame-pane frame 'screen-pane)))))
+    (object)
+  
+    )
+
+;; the use of the same drawing command here is so that the dragging
+;; action seems seamless, but this could change to an outline that snaps
+;; to regions of the screen, an eventual goal
+(lisp-editor-base:my-make-command
+ com-drag-window
+ :com-behavior (let ((pane (get-frame-pane *application-frame* 'screen-pane)))
+                 (multiple-value-bind (x y)
+                     (clim:dragging-output (pane :finish-on-release t
+                                                 :repaint t)
+                       (lisp-editor-base:draw-window *application-frame*
+                                                     pane)))))
+
+;;; converts click on button-window-close to command com-window-quit
+(clim:define-presentation-to-command-translator translator-close-window
     ())
+
+;;;; FIXME make com-window-quit
 
 (defmethod window-clear ((pane screen-pane))
   (call-next-method)
-  (handle-repaint pane (sheet-region pane)))
+  (clim:handle-repaint pane (clim:sheet-region pane)))
 
 (defun window-filestring (window)
   (namestring (buffer-file (window-buffer window))))
