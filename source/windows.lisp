@@ -68,7 +68,7 @@
 
 
 ;; trans is a faux point to translate the original point by
-(defun lisp-edior-base:translate-point (org trans)
+(defun lisp-editor-base:translate-point (org trans)
   (clim:make-point (+ (clim:point-x org) (clim:point-x trans))
                    (+ (clim:point-y org) (clim:point-y trans))))
 
@@ -77,23 +77,21 @@
 ;; actually isnt that low level, just complicated to draw
 ;;; FIXME remove the dolist, thisll get called externally on each window
 ;; init-pos is a clim standard point
-(defun draw-window (frame pane &optional init-pos))
-  (dolist (window (screen-windows pane) nil)
-    (let* ((window screen-window)
-           (name (window-filestring window))
+(defun draw-window (app-frame drawing-pane window &optional init-pos)
+    (let* ((name (window-filestring window))
            (str (window-string window))
            (pos (if init-pos
                     init-pos
                     (window-pos window)))
            (size (if init-pos
-                     (lisp-editor-base:translate-point size init-pos))))
+                     (lisp-editor-base:translate-point (window-size window) init-pos))))
 ;;; if !active, quit? or only run if active
-      (window-clear pane)
+      (window-clear drawing-pane)
       (draw-plain-window pos size pane)
       (draw-window-name pos name)
       (draw-window-close-button pos size window)
       (draw-window-string pos size str window)
-      ))
+     ))
 
 (defun draw-plain-window (pos size pane)
   (clim:draw-rectangle pane pos size :filled t :line-thickness 3))
@@ -175,7 +173,11 @@
                      (clim:dragging-output (pane :finish-on-release t
                                                  :repaint t)
                        (lisp-editor-base:draw-window *application-frame*
-                                                     pane)))))
+                                                     pane
+                                                     window
+                                                     ))))
+ :args (window 'window))
+
 
 ;;; converts click on button-window-close to command com-window-quit
 (clim:define-presentation-to-command-translator translator-close-window

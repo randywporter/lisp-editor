@@ -9,5 +9,8 @@
   (:use #:common-lisp #:clim)
   (:export
    #:my-make-command
-   #:draw-window))
+   #:draw-window
+   #:translate-point
+   #:topbar-draggable-window
+   #:button-close-window))
 
