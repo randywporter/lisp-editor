@@ -40,6 +40,8 @@
   (multiple-value-bind (x y) (stream-pointer-position pane)
     (clim:make-point x y)))
 
+
+;;; FIXME active and dragging deprecated 
 (defclass window ()
   ((buffer :accessor window-buffer
            :initarg :buffer)
@@ -53,7 +55,13 @@
            :initarg :active
            :initform nil)
    (dragging :accessor window-dragging
-             :initform nil)))
+             :initform nil)
+   (topbar :accessor window-topbar
+           :initarg window-topbar)
+   (close-button :accessor window-close-button
+                 :initarg close-button)
+   (text-field :accessor window-text-field
+               :initarg text-button)))
 
 (defun make-window-active (window)
   (setq (window-active window) t))
@@ -106,14 +114,14 @@
                   (+ (clim:point-y 20)))))
     (clim:draw-text window sequence new-pos :toward-point size)))
 
-(defun window-close-button (pos size window)
+(defun draw-window-close-button (pos size window)
   )
 
 (defun close-window (pane pos-click)
   )
 
 (defclass lisp-editor-base:topbar-draggable-window (clim:standard-bounding-rectangle)
-  ()
+  (window )
   :documentation "class for the top bar of a window to drag"
   )
 
@@ -122,9 +130,27 @@
   :documentation "class for the button that closes windows"
   )
 
+(defgeneric lisp-editor-base:search-for-parent-window (child windows)
+  (:documentation "finds the parent window object of a child object"))
+
+;;; FIXME: are these the right equality operators for this operation?
+
+(defmethod lisp-editor-base:search-for-parent-window ((child lisp-editor-base:topbar-draggable-window) windows)
+  (loop for window across windows
+        (if (eq child
+                (window-topbar window))
+            (return window))))
+
+(defmethod lisp-editor-base:search-for-parent-window ((child lisp-editor-base:button-close-window) windows)
+  (loop for window across window
+        (if (eq child
+                (window-close-button window))
+            (return window))))
+
 ;;; updates window pos and size values by translation of new-x and
 ;;; new-y when dragged
 ;;; FIXME tester is shamelessly copied and might not work in this very case
+;;; FIXME convert object to window that parents
 (clim:define-presentation-to-command-translator translator-drag-window
     (lisp-editor-base:topbar-draggable-window
      com-drag-window superapp
@@ -135,12 +161,13 @@
         (eq (clim:pointer-sheet (clim:port-pointer (clim:port frame)))
             (clim:get-frame-pane frame 'screen-pane)))))
     (object)
-  
+  (lisp-editor-base:search-for-parent-window object)
     )
 
 ;; the use of the same drawing command here is so that the dragging
 ;; action seems seamless, but this could change to an outline that snaps
 ;; to regions of the screen, an eventual goal
+;;;; FIXME this isnt finished...
 (lisp-editor-base:my-make-command
  com-drag-window
  :com-behavior (let ((pane (get-frame-pane *application-frame* 'screen-pane)))
@@ -156,6 +183,7 @@
 
 ;;;; FIXME make com-window-quit
 
+;; this might not work at all
 (defmethod window-clear ((pane screen-pane))
   (call-next-method)
   (clim:handle-repaint pane (clim:sheet-region pane)))

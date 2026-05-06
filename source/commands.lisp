@@ -115,6 +115,8 @@
   (my-make-command com-redo)
 
   (my-make-command com-list-buffers)
+
+  ;;; FIXME wrong command???
   
   (my-make-command com-close
                    :com-behavior (my-new-file))
