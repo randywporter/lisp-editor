@@ -12,5 +12,6 @@
    #:draw-window
    #:translate-point
    #:topbar-draggable-window
-   #:button-close-window))
+   #:button-close-window
+   #:search-for-parent-window))
 

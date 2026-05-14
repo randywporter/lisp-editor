@@ -37,7 +37,7 @@
    :record (error "move-event needs a record")))
 
 (defun get-pointer-position (pane)
-  (multiple-value-bind (x y) (stream-pointer-position pane)
+  (multiple-value-bind (x y) (clim:stream-pointer-position pane)
     (clim:make-point x y)))
 
 
@@ -169,13 +169,16 @@
 (lisp-editor-base:my-make-command
  com-drag-window
  :com-behavior (let ((pane (get-frame-pane *application-frame* 'screen-pane)))
-                 (multiple-value-bind (x y)
+                 (multiple-value-bind (nx ny)
                      (clim:dragging-output (pane :finish-on-release t
                                                  :repaint t)
                        (lisp-editor-base:draw-window *application-frame*
                                                      pane
                                                      window
-                                                     ))))
+                                                     )
+                       (setq nx (clim:point-x (get-pointer-position pane))
+                             ny ((clim:point-y (get-pointer-position pane)))))
+                   (setq (window-pos window) '(clim:make-point nx ny))))
  :args (window 'window))
 
 
