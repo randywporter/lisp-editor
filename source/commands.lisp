@@ -8,7 +8,7 @@
 
 (defmacro lisp-editor-base:my-make-command (n &key (com-behavior '(placeholder-do-nothing)) (args nil))
   `(define-superapp-command (,n :name t)
-       (,@args)
+       (,args)
      ,com-behavior))
 
 ;; this type of window is basically a big output text that

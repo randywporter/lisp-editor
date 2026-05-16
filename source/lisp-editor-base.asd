@@ -2,9 +2,8 @@
 
 (defsystem #:lisp-editor-base
   :depends-on (#:mcclim
-	       #:cluffer
-	       #:text.editing
-               #:text.editor-buffer)
+               #:text.editor-buffer
+	       #:text.editing)
   
   :serial t
   :components
