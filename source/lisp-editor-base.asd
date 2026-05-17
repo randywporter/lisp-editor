@@ -8,8 +8,4 @@
   :serial t
   :components
   ((:file "packages")
-   (:file "config")
-   (:file "text-bufs")
-   (:file "commands")
-   (:file "windows")
    (:file "main")))

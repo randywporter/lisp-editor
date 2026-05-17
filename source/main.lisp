@@ -1,5 +1,7 @@
 (in-package #:lisp-editor)
 
+;; text window things
+
 (defclass editor-window ()
   ((title
     :initarg :title
@@ -26,12 +28,12 @@
    (width
     :initarg :width
     :accessor window-width
-    :initform 400)
+    :initform 200)
 
    (height
     :initarg :height
     :accessor window-height
-    :initform 300)))
+    :initform 150)))
 
 (defun window-right (window)
   (+ (window-x window)
@@ -45,12 +47,30 @@
   (and (<= x1 px x2)
        (<= y1 py y2)))
 
+;; app frame things
+
 (defclass screen-pane (application-pane)
   ())
+
+(make-command-table 'my-file-menu :errorp nil :menu
+                    '(("New" :command com-new)
+                      ("Open" :command com-open)
+                      ("Save" :command com-save)
+                      ("Close" :command com-close)
+                      ("Quit" :command com-quit)))
+(make-command-table 'my-edit-menu :errorp nil :menu
+                    '(("Copy" :command com-copy)
+                      ("Paste" :command com-paste)
+                      ("Undo" :command com-undo)
+                      ("Redo" :command com-redo)))
+(make-command-table 'my-menu-bar :errorp nil :menu
+                    '(("File" :menu my-file-menu)
+                      ("Edit" :menu  my-edit-menu)))
 
 (define-application-frame editor-frame ()
   ((windows
     :initform nil
+    :initarg :windows
     :accessor frame-windows)
 
    ;; drag state
@@ -66,17 +86,28 @@
     :initform 0
     :accessor frame-drag-offset-y))
 
+  (:menu-bar my-menu-bar)
+
   (:panes
    (screen
     (make-pane 'screen-pane
-               :display-function #'display-editor)))
+               :height 600
+               :width 800
+               :display-function 'display-editor))
+   (my-int :interactor
+           :width 800
+           :height 100))
 
   (:layouts
-   (default screen)))
+   (default screen my-int)))
+
+;; presentation types
 
 (define-presentation-type window-body ())
 (define-presentation-type window-topbar ())
 (define-presentation-type window-close-button ())
+
+;; drawing the windows
 
 (defparameter *titlebar-height* 24)
 (defparameter *close-button-size* 18)
@@ -148,14 +179,12 @@
                   :toward-y (- bottom 10)))))
 
 (defun display-editor (frame pane)
-  (declare (ignore pane))
-
   (dolist (window (frame-windows frame))
-    (draw-window-frame
-     (get-frame-pane frame 'screen)
-     window)))
+     (draw-window-frame
+      (get-frame-pane frame 'screen)
+      window)))
 
-(define-editor-command (com-close-window :name t)
+(define-editor-frame-command (com-close-window :name t)
     ((window 'editor-window))
   (setf (frame-windows *application-frame*)
         (remove window
@@ -163,7 +192,7 @@
 
   (redisplay-frame-panes *application-frame*))
 
-(define-editor-command (com-start-drag :name nil)
+(define-editor-frame-command (com-start-drag :name nil)
     ((window 'editor-window)
      (pointer-x 'integer)
      (pointer-y 'integer))
@@ -175,7 +204,7 @@
         (frame-drag-offset-y *application-frame*)
         (- pointer-y (window-y window))))
 
-(define-editor-command (com-stop-drag :name nil) ()
+(define-editor-frame-command (com-stop-drag :name nil) ()
   (setf (frame-drag-window *application-frame*) nil))
 
 (define-presentation-to-command-translator close-window-translator
@@ -223,11 +252,10 @@
 
 (defmethod handle-event ((pane screen-pane)
                          (event pointer-button-release-event))
-
+;  (declare (ignore pane event))
+  
   (call-next-method)
-
-  (declare (ignore pane event))
-
+  
   (setf (frame-drag-window *application-frame*) nil))
 
 (defun make-demo-windows ()
