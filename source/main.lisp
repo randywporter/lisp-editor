@@ -69,13 +69,13 @@
     :initform 150)))
 
 (defun window-point (window)
-  (text.editing:point (window-site window)))
+  (text.editing:point (window-site window))
+  (text.editing:move (window-view-site window)
+                     text.editing:item
+                     :forward))
 
 (defun insert-string-at-point (window string)
-  (setf (text.editing:items (window-point window)
-                            text.editing:buffer
-                            :forward)
-        string))
+  (text.editing:insert-items (window-point window) string))
 
 (defun delete-backward-at-point (window)
   (text.editing:perform (window-point window)
@@ -127,8 +127,8 @@
 
 ;; app frame things
 
-(defclass screen-pane (application-pane)
-  ())
+(defclass screen-pane (application-pane) ()
+  (:default-initargs :background clim:+black+))
 
 (make-command-table 'my-file-menu :errorp nil :menu
                     '(("New" :command com-new)
@@ -149,20 +149,16 @@
     :initform nil
     :initarg :windows
     :accessor frame-windows)
-
    (edit-window
     :initform nil
     :accessor frame-edit-window)
-
    ;; drag state
    (drag-window
     :initform nil
     :accessor frame-drag-window)
-
    (drag-offset-x
     :initform 0
     :accessor frame-drag-offset-x)
-
    (drag-offset-y
     :initform 0
     :accessor frame-drag-offset-y))
@@ -174,7 +170,7 @@
     (make-pane 'screen-pane
                :height 600
                :width 800
-               :display-function 'display-editor)))
+               :display-function #'display-editor)))
 
   (:layouts
    (default
@@ -199,11 +195,22 @@
          (bottom (window-bottom window))
          (titlebar-bottom (+ y *titlebar-height*)))
 
-    ;; outer frame
-    (draw-rectangle* pane
-                     x y right bottom
-                     :filled t
-                     :ink +gray90+)
+    ;; buffer + body
+    (with-output-as-presentation
+        (pane window 'window-body)
+
+      (draw-rectangle* pane
+                       x y right bottom
+                       :filled t
+                       :ink clim:+dark-green+)
+
+      (draw-text* pane
+                  (site->string (window-view-site window))
+                  (+ x 10)
+                  (+ y 40)
+                  :ink clim:+white+
+                  :toward-x (- right 10)
+                  :toward-y (- bottom 10)))
 
     ;; border
     (draw-rectangle* pane
@@ -219,7 +226,7 @@
       (draw-rectangle* pane
                        x y right titlebar-bottom
                        :filled t
-                       :ink +dark-slate-gray+)
+                       :ink clim:+green4+)
 
       (draw-text* pane
                   (window-title window)
@@ -247,16 +254,7 @@
                     (+ by 14)
                     :ink +white+)))
 
-    ;; buffer/body
-    (with-output-as-presentation
-        (pane window 'window-body)
-
-      (draw-text* pane
-                  (site->string (window-view-site window))
-                  (+ x 10)
-                  (+ y 40)
-                  :toward-x (- right 10)
-                  :toward-y (- bottom 10)))))
+    ))
 
 (defun display-editor (frame pane)
   (dolist (window (frame-windows frame))
@@ -301,17 +299,19 @@
                     (let ((new (make-editor-window)))
                       (push new (frame-windows *application-frame*))
                       new))))
-    (with-open-file (from-file-stream
-                     (get-pathname-popup "Enter filename of existing file")
-                     :direction :input
-                     :if-does-not-exist :error)
-      (let ((string (make-string (file-length from-file-stream))))
-        (read-sequence string from-file-stream)
-        (let ((buf (make-editor-buffer :contents string)))
-          (setf (window-buffer window) buf
-                (window-site window) (text.editing:site buf)
-                (window-view-site window) (make-view-site buf)
-                (frame-edit-window *application-frame*) window))))
+    (let ((filespec (get-pathname-popup "Enter filename of existing file")))
+      (with-open-file (from-file-stream
+                       filespec
+                       :direction :input
+                       :if-does-not-exist :error)
+                       (let ((string (make-string (file-length from-file-stream))))
+                         (read-sequence string from-file-stream)
+                         (let ((buf (make-editor-buffer :contents string)))
+                           (setf (window-buffer window) buf
+                                 (window-site window) (text.editing:site buf)
+                                 (window-view-site window) (make-view-site buf)
+                                 (window-title window) (file-namestring filespec)
+                                 (frame-edit-window *application-frame*) window)))))
     (focus-editor-pane))
   (redisplay-frame-panes *application-frame*))
 
@@ -347,6 +347,10 @@
   (setf (frame-windows *application-frame*)
         (remove window
                 (frame-windows *application-frame*)))
+
+  (if (eql (frame-edit-window *application-frame*)
+           window)
+      (setf (frame-edit-window *application-frame*) nil))
 
   (redisplay-frame-panes *application-frame*))
 
@@ -403,10 +407,10 @@
   (list object))
 
 (defun maybe-edit-key-character (event)
-  (ignore-errors (clim:keyboard-event-character event)))
+  (clim:keyboard-event-character event))
 
 (defun maybe-edit-key-name (event)
-  (ignore-errors (clim:keyboard-event-key-name event)))
+  (clim:keyboard-event-key-name event))
 
 (defmethod handle-event ((pane screen-pane)
                          (event key-press-event))
@@ -416,13 +420,13 @@
       (let ((ch (maybe-edit-key-character event))
             (key (maybe-edit-key-name event)))
         (cond
-          ((and ch (graphic-char-p ch))
+          ((graphic-char-p ch)
            (insert-string-at-point window (string ch))
            (redisplay-frame-panes frame))
 
           ((or (eql ch #\Newline)
                (member key '(:return :enter)))
-           (insert-string-at-point window (string #\Newline))
+           (text.editing:insert-newline (window-point window))
            (redisplay-frame-panes frame))
 
           ((member key '(:backspace :rubout))
